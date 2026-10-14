@@ -143,8 +143,16 @@ export async function POST(request: Request) {
 
   const teams = await getAllUserTeams(id);
 
-  return json({
+  const response = json({
     token: fullToken,
     user: { id, username, role, createdAt, isAdmin: role === ROLES.admin, teams },
   });
+
+  response.headers.set(
+    'Set-Cookie',
+    `umami.auth=${encodeURIComponent(fullToken)}; Path=/; Max-Age=315360000; Expires=Fri, 31 Dec 2038 23:59:59 GMT; SameSite=Lax; Secure`,
+  );
+
+  return response;
 }
+

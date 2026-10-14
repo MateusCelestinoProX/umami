@@ -13,5 +13,12 @@ export async function POST(request: Request) {
     await redis.client.del(auth.authKey);
   }
 
-  return ok();
+  const response = ok();
+  response.headers.set(
+    'Set-Cookie',
+    'umami.auth=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure',
+  );
+
+  return response;
 }
+

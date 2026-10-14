@@ -11,5 +11,15 @@ export async function POST(request: Request) {
 
   const teams = await getAllUserTeams(auth.user.id);
 
-  return json({ ...auth.user, teams });
+  const response = json({ ...auth.user, teams });
+
+  if (auth.token) {
+    response.headers.set(
+      'Set-Cookie',
+      `umami.auth=${encodeURIComponent(auth.token)}; Path=/; Max-Age=315360000; Expires=Fri, 31 Dec 2038 23:59:59 GMT; SameSite=Lax; Secure`,
+    );
+  }
+
+  return response;
 }
+

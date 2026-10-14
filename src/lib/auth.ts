@@ -26,8 +26,24 @@ const log = debug('umami:auth');
 export function getBearerToken(request: Request) {
   const auth = request.headers.get('authorization');
 
-  return auth?.split(' ')[1];
+  if (auth) {
+    const bearer = auth.split(' ')[1];
+    if (bearer && bearer !== 'null' && bearer !== 'undefined') {
+      return bearer;
+    }
+  }
+
+  const cookie = request.headers.get('cookie');
+  if (cookie) {
+    const match = cookie.match(/(?:^|;\s*)umami\.auth=([^;]+)/);
+    if (match) {
+      return decodeURIComponent(match[1]);
+    }
+  }
+
+  return undefined;
 }
+
 
 export async function checkApiKeyAuth(request: Request, token: string) {
   const { pathname } = new URL(request.url);

@@ -12,7 +12,7 @@ export function getItem(key: string, session?: boolean): any {
       try {
         return JSON.parse(value);
       } catch {
-        return null;
+        return value;
       }
     }
   }
