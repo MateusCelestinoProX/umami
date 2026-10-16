@@ -11,7 +11,7 @@
   },
   "type": "module",
   "engines": {
-    "pnpm": "12.3.4"
+    "pnpm": ">=9.0.0"
   },
   "scripts": {
     "dev": "dotenv next dev --turbo",

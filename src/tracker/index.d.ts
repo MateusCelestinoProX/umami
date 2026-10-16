@@ -166,6 +166,7 @@ export type UmamiTracker = {
     cache: string | undefined;
     website: string | null;
   };
+  destroy?: () => void;
 };
 declare global {
   interface Window {
