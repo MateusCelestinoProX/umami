@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { Suspense } from 'react';
 import { getBaseUrl } from '@/lib/get-base-url';
 import { Providers } from './Providers';
+import { McpOsBackground } from '@/components/mcp-os/McpOsBackground';
 import '@umami/react-zen/styles.full.css';
 import './global.css';
 
@@ -23,7 +24,7 @@ export default function ({ children }) {
   }
 
   return (
-    <html lang="en" className={`${inter.className} ${inter.variable}`}>
+    <html lang="en" className={`${inter.className} ${inter.variable}`} data-theme="dark">
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -32,11 +33,12 @@ export default function ({ children }) {
         <link rel="manifest" href="/site.webmanifest" crossOrigin="use-credentials" />
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
         <meta name="msapplication-TileColor" content="#da532c" />
-        <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#2f2f2f" media="(prefers-color-scheme: dark)" />
+        <meta name="theme-color" content="#040407" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#040407" media="(prefers-color-scheme: dark)" />
         <meta name="robots" content="noindex,nofollow" />
       </head>
       <body>
+        <McpOsBackground />
         <Suspense>
           <Providers>{children}</Providers>
         </Suspense>

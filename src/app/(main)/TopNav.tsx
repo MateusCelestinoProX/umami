@@ -7,6 +7,7 @@ import { LinkSelect } from '@/components/input/LinkSelect';
 import { PixelSelect } from '@/components/input/PixelSelect';
 import { TeamsButton } from '@/components/input/TeamsButton';
 import { WebsiteSelect } from '@/components/input/WebsiteSelect';
+import { ShaderSwitcher } from '@/components/mcp-os/ShaderSwitcher';
 
 export function TopNav() {
   const { websiteId, linkId, pixelId, boardId, teamId, router, renderUrl } = useNavigation();
@@ -103,6 +104,9 @@ export function TopNav() {
             )}
           </>
         )}
+      </Row>
+      <Row alignItems="center" gap="2" style={{ marginLeft: 'auto', zIndex: 101 }}>
+        <ShaderSwitcher />
       </Row>
       <div
         style={{
