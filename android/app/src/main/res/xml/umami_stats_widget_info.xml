@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:configure="com.blackpiratex.umami.widget.WidgetConfigActivity"
+    android:initialLayout="@layout/widget_umami_stats"
+    android:minWidth="180dp"
+    android:minHeight="110dp"
+    android:previewImage="@drawable/ic_splash_logo"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellWidth="3"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="7200000"
+    android:widgetCategory="home_screen" />

@@ -143,3 +143,57 @@ test('auto-captures form submissions and performs Automatic Advanced Matching', 
     },
   });
 });
+
+test('auto-captures WhatsApp and checkout clicks', async () => {
+  const script = document.createElement('script');
+  script.src = 'https://analytics.example.com/script.js';
+  script.dataset.websiteId = 'website-id';
+
+  Object.defineProperties(document, {
+    currentScript: { configurable: true, value: script },
+    readyState: { configurable: true, value: 'complete' },
+  });
+
+  const fetchMock = vi.fn().mockResolvedValue({ json: vi.fn().mockResolvedValue({}) });
+  vi.stubGlobal('fetch', fetchMock);
+
+  await import('./index');
+  await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+  // WhatsApp Link click
+  const waLink = document.createElement('a');
+  waLink.href = 'https://wa.me/5511999998888?text=Ola';
+  waLink.innerText = 'Fale Conosco';
+  document.body.appendChild(waLink);
+
+  waLink.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+
+  await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+  const waRequest = JSON.parse(fetchMock.mock.calls[1][1].body);
+  expect(waRequest).toMatchObject({
+    type: 'event',
+    payload: {
+      name: 'WhatsApp Click',
+      data: { phone: '5511999998888', text: 'Fale Conosco' },
+    },
+  });
+
+  // Checkout Link click
+  const checkoutLink = document.createElement('a');
+  checkoutLink.href = 'https://pay.kiwify.com.br/abc1234';
+  checkoutLink.innerText = 'Garantir Vaga';
+  document.body.appendChild(checkoutLink);
+
+  checkoutLink.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+
+  await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
+  const checkoutRequest = JSON.parse(fetchMock.mock.calls[2][1].body);
+  expect(checkoutRequest).toMatchObject({
+    type: 'event',
+    payload: {
+      name: 'Initiate Checkout',
+      data: { text: 'Garantir Vaga' },
+    },
+  });
+});
+
