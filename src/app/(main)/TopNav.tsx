@@ -44,7 +44,6 @@ export function TopNav() {
       justifyContent="flex-start"
       paddingY="2"
       paddingX="3"
-      paddingRight="5"
       width="100%"
       zIndex={100}
       backgroundColor="surface-raised"

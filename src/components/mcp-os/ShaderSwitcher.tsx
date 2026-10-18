@@ -42,8 +42,8 @@ export function ShaderSwitcher() {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
-          padding: '6px 12px',
+          gap: '6px',
+          padding: '5px 10px',
           borderRadius: '12px',
           background: 'rgba(255, 255, 255, 0.06)',
           backdropFilter: 'blur(16px)',
@@ -55,6 +55,7 @@ export function ShaderSwitcher() {
           cursor: 'pointer',
           boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
           transition: 'all 0.2s ease',
+          maxWidth: '180px',
         }}
         onMouseEnter={e => {
           e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
@@ -75,19 +76,31 @@ export function ShaderSwitcher() {
             backgroundColor: '#a78bfa',
             boxShadow: '0 0 10px #a78bfa',
             display: 'inline-block',
+            flexShrink: 0,
           }}
         />
-        <span style={{ opacity: 0.9 }}>{currentPreset.name}</span>
+        <span
+          style={{
+            opacity: 0.9,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            maxWidth: '100px',
+          }}
+        >
+          {currentPreset.name}
+        </span>
         <span
           style={{
             fontSize: '9px',
-            padding: '2px 6px',
+            padding: '2px 5px',
             borderRadius: '6px',
             background: 'rgba(167, 139, 250, 0.25)',
             border: '1px solid rgba(167, 139, 250, 0.4)',
             color: '#e9d5ff',
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
+            flexShrink: 0,
           }}
         >
           Shader

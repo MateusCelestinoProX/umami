@@ -374,8 +374,27 @@ select:is(:-webkit-autofill, :autofill):focus {
     flex: 0 0 28px;
   }
 
-  .rr-controller__btns .label {
+.rr-controller__btns .label {
     margin: 0 4px;
     font-size: 12px;
   }
+}
+
+/* Glass Website Cards on Mobile & Tablet */
+.glass-website-card {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s ease,
+              background-color 0.2s ease !important;
+}
+
+.glass-website-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(167, 139, 250, 0.35) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), 0 0 16px rgba(167, 139, 250, 0.15) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.glass-website-card:active {
+  transform: scale(0.99);
 }
