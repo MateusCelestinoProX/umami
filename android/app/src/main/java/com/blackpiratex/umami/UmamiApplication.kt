@@ -1,12 +1,26 @@
 package com.blackpiratex.umami
 
 import android.app.Application
+import android.os.Handler
+import android.os.Looper
+import android.webkit.CookieManager
+import android.webkit.WebView
 import com.blackpiratex.umami.data.api.UmamiApiService
 import com.blackpiratex.umami.data.db.UmamiDatabase
 import com.blackpiratex.umami.data.preferences.SessionManager
 import com.blackpiratex.umami.util.NetworkObserver
+import com.blackpiratex.umami.util.WebResourceCacheManager
+import java.net.URLEncoder
 
 class UmamiApplication : Application() {
+
+    companion object {
+        const val PRIMARY_HOST = "umami-chi-topaz.vercel.app"
+        const val UMAMI_BASE_URL = "https://umami-chi-topaz.vercel.app"
+        const val TARGET_URL = "https://umami-chi-topaz.vercel.app/websites"
+        const val AUTH_TOKEN =
+            "AZ3LnzBh1mE9H1wO86LIGs8VJlSaY7rEPJPng9ikgODVBTh61e8gjMWigMtfFrKm3AGvbbi7bk1U7LT47G9OFrLS5EeCk6vJ6MtJQti2S/Kc87Q1RBJBKCigTVAl3ps6nYQy+b78cvWeFF3PT8W1SmzDobmRg0inMuonkcboe9k6TkakKdpAzE7P51fHBpQc9m3/ZL8Fz52hq/BoW8Xlm5OSNSQ4d5JsOZilbf3MvPXIvbOM3Nh21NBDlYc+YbFNUn1MLVOedthXjUMNj9AmpQKxeF0kFO4cg/OvYcENg6y/Q4M5iSa+fQRntgZwo2l2LiPIjPEi0NwPIz7QgXwBVUMFPJc6GdrSMogm1t20yHzP0rM+gU+BmTBHNLL9y+9oD+MDMCm3jEaLqnst5FMp97EuWpqUorgOeDE14rtkc8WZIlMpsWb23roijiuRHdQGrfIt9l9gSpF3P/E8jl7wiNcZRFAlS2b9goZDouWb1oGJSGJldEPTBnuFaXUwZgK8mLF88KKb+xt59gTqnjwtnZ19gvqdGo7gnw7ug1an1biH94t91oVSSQ6vfN8uzwnU3GmMgUzEBxf04a5U02dzqpQIojodTDX4kfXljg5KmACtAUwO"
+    }
 
     lateinit var database: UmamiDatabase
         private set
@@ -20,20 +34,49 @@ class UmamiApplication : Application() {
     lateinit var networkObserver: NetworkObserver
         private set
 
+    lateinit var cacheManager: WebResourceCacheManager
+        private set
+
     override fun onCreate() {
         super.onCreate()
         database = UmamiDatabase.getDatabase(this)
         sessionManager = SessionManager(this)
         apiService = UmamiApiService()
         networkObserver = NetworkObserver(this)
+        cacheManager = WebResourceCacheManager(this)
 
         if (!sessionManager.isLoggedIn()) {
             sessionManager.saveSession(
-                serverUrl = "https://umami-chi-topaz.vercel.app",
-                token = "AZ3LnzBh1mE9H1wO86LIGs8VJlSaY7rEPJPng9ikgODVBTh61e8gjMWigMtfFrKm3AGvbbi7bk1U7LT47G9OFrLS5EeCk6vJ6MtJQti2S/Kc87Q1RBJBKCigTVAl3ps6nYQy+b78cvWeFF3PT8W1SmzDobmRg0inMuonkcboe9k6TkakKdpAzE7P51fHBpQc9m3/ZL8Fz52hq/BoW8Xlm5OSNSQ4d5JsOZilbf3MvPXIvbOM3Nh21NBDlYc+YbFNUn1MLVOedthXjUMNj9AmpQKxeF0kFO4cg/OvYcENg6y/Q4M5iSa+fQRntgZwo2l2LiPIjPEi0NwPIz7QgXwBVUMFPJc6GdrSMogm1t20yHzP0rM+gU+BmTBHNLL9y+9oD+MDMCm3jEaLqnst5FMp97EuWpqUorgOeDE14rtkc8WZIlMpsWb23roijiuRHdQGrfIt9l9gSpF3P/E8jl7wiNcZRFAlS2b9goZDouWb1oGJSGJldEPTBnuFaXUwZgK8mLF88KKb+xt59gTqnjwtnZ19gvqdGo7gnw7ug1an1biH94t91oVSSQ6vfN8uzwnU3GmMgUzEBxf04a5U02dzqpQIojodTDX4kfXljg5KmACtAUwO",
+                serverUrl = UMAMI_BASE_URL,
+                token = AUTH_TOKEN,
                 username = "mateuscelestino"
             )
             sessionManager.saveSelectedWebsite("f4cb9526-35ff-4975-9e7b-1691b79800c2")
+        }
+
+        // 1. Pre-seed CookieManager before any Activity is instantiated
+        try {
+            val cookieManager = CookieManager.getInstance()
+            cookieManager.setAcceptCookie(true)
+            val encodedToken = URLEncoder.encode(AUTH_TOKEN, "UTF-8")
+            val cookieValue = "umami.auth=$encodedToken; Path=/; Max-Age=315360000; SameSite=Lax; Secure"
+            cookieManager.setCookie(UMAMI_BASE_URL, cookieValue)
+            cookieManager.setCookie("https://$PRIMARY_HOST", cookieValue)
+            cookieManager.setCookie("https://vercel.app", cookieValue)
+            cookieManager.flush()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        // 2. Pre-warm DNS and TLS connection pool
+        cacheManager.prewarmConnection(PRIMARY_HOST, TARGET_URL)
+
+        // 3. Pre-warm Chromium provider on main thread idle
+        Looper.myQueue().addIdleHandler {
+            try {
+                WebView(this).destroy()
+            } catch (_: Throwable) {}
+            false
         }
     }
 }
