@@ -164,6 +164,14 @@ class WebResourceCacheManager(private val context: Context) {
         }
     }
 
+    fun invalidateShellCache() {
+        try {
+            if (shellCacheFile.exists()) {
+                shellCacheFile.delete()
+            }
+        } catch (_: Exception) {}
+    }
+
     private fun createResponse(mimeType: String, stream: java.io.InputStream): WebResourceResponse {
         val headers = mapOf(
             "Access-Control-Allow-Origin" to "*",

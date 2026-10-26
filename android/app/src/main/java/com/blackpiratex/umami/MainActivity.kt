@@ -351,8 +351,10 @@ class MainActivity : ComponentActivity() {
     }
 
     fun triggerExplicitReload() {
+        (application as? UmamiApplication)?.cacheManager?.invalidateShellCache()
         progressBar.visibility = View.VISIBLE
         progressBar.progress = 15
+        webView.clearCache(false)
         webView.reload()
     }
 

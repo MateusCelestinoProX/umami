@@ -1,14 +1,81 @@
-import { Column, Grid, Row, Text } from '@umami/react-zen';
+import { Column, Grid, Row, Text, Icon } from '@umami/react-zen';
+import { useState } from 'react';
 import { WebsiteNav } from '@/app/(main)/websites/[websiteId]/WebsiteNav';
 import { IconLabel } from '@/components/common/IconLabel';
 import Link from '@/components/common/Link';
 import { useMessages, useNavigation } from '@/components/hooks';
-import { Globe, Grid2x2, LayoutDashboard, LinkIcon } from '@/components/icons';
+import { Globe, Grid2x2, LayoutDashboard, LinkIcon, RotateCw } from '@/components/icons';
 import { MobileMenuButton } from '@/components/input/MobileMenuButton';
 import { UserButton } from '@/components/input/UserButton';
 import { Logo } from '@/components/svg';
 import { AdminNav } from './admin/AdminNav';
 import { SettingsNav } from './settings/SettingsNav';
+
+function MobileReloadButton() {
+  const [rotating, setRotating] = useState(false);
+
+  const handleClick = () => {
+    setRotating(true);
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        navigator.vibrate(20);
+      } catch {
+        // ignore
+      }
+    }
+    if (typeof window !== 'undefined') {
+      const bridge = (window as any).AndroidBridge;
+      if (bridge && typeof bridge.reloadPage === 'function') {
+        bridge.reloadPage();
+      } else {
+        window.location.reload();
+      }
+    }
+    setTimeout(() => setRotating(false), 800);
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      title="Recarregar Dados"
+      aria-label="Recarregar"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '38px',
+        height: '38px',
+        minWidth: '38px',
+        minHeight: '38px',
+        borderRadius: '12px',
+        background: 'rgba(255, 255, 255, 0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.14)',
+        color: 'rgba(255, 255, 255, 0.90)',
+        cursor: 'pointer',
+        transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+        marginRight: '6px',
+        flexShrink: 0,
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+        e.currentTarget.style.color = '#ffffff';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.90)';
+      }}
+    >
+      <Icon size="xs">
+        <RotateCw
+          style={{
+            transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+            transform: rotating ? 'rotate(360deg)' : 'none',
+          }}
+        />
+      </Icon>
+    </button>
+  );
+}
 
 export function MobileNav() {
   const { t, labels } = useMessages();
@@ -45,7 +112,14 @@ export function MobileNav() {
   ];
 
   return (
-    <Grid columns="auto 1fr" flexGrow={1} backgroundColor="surface-sunken" borderRadius>
+    <Grid
+      columns="auto 1fr auto"
+      alignItems="center"
+      flexGrow={1}
+      backgroundColor="surface-sunken"
+      borderRadius
+      paddingRight="1"
+    >
       <MobileMenuButton>
         {({ close }) => {
           return (
@@ -98,6 +172,7 @@ export function MobileNav() {
           <Text weight="bold">umami</Text>
         </IconLabel>
       </Row>
+      <MobileReloadButton />
     </Grid>
   );
 }
