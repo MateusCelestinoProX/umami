@@ -65,6 +65,9 @@ class MainActivity : ComponentActivity() {
         window.statusBarColor = Color.TRANSPARENT
         window.navigationBarColor = Color.TRANSPARENT
 
+        // Enable Chrome DevTools inspection
+        WebView.setWebContentsDebuggingEnabled(true)
+
         val controller = WindowCompat.getInsetsController(window, window.decorView)
         controller.isAppearanceLightStatusBars = false
         controller.isAppearanceLightNavigationBars = false
@@ -99,6 +102,7 @@ class MainActivity : ComponentActivity() {
             setLayerType(View.LAYER_TYPE_HARDWARE, null)
             isVerticalScrollBarEnabled = false
             isHorizontalScrollBarEnabled = false
+            overScrollMode = View.OVER_SCROLL_NEVER
         }
 
         // High priority GPU rasterization

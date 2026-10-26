@@ -39,6 +39,14 @@ export function McpOsBackground() {
       }
     };
 
+    const scheduleStartup = () => {
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(() => startEngine(), { timeout: 400 });
+      } else {
+        setTimeout(startEngine, 200);
+      }
+    };
+
     // Verifica se o script do motor WebGL já está carregado
     const existingScript = document.getElementById('mcp-os-webgl-script');
     if (!existingScript) {
@@ -47,12 +55,11 @@ export function McpOsBackground() {
       script.type = 'module';
       script.src = '/mcp-os/mcp-os-webgl.js?v=20261016';
       script.onload = () => {
-        // Breve intervalo para garantir registro de funções globais
-        setTimeout(startEngine, 50);
+        scheduleStartup();
       };
       document.head.appendChild(script);
     } else {
-      setTimeout(startEngine, 50);
+      scheduleStartup();
     }
 
     const handleSwitchShader = (e: CustomEvent<{ shader: string }>) => {

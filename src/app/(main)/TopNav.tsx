@@ -107,17 +107,6 @@ export function TopNav() {
       <Row alignItems="center" gap="2" style={{ marginLeft: 'auto', zIndex: 101 }}>
         <ShaderSwitcher />
       </Row>
-      <div
-        style={{
-          position: 'absolute',
-          bottom: -16,
-          left: 0,
-          right: 0,
-          height: 16,
-          background: 'linear-gradient(to bottom, var(--zen-surface-raised), transparent)',
-          pointerEvents: 'none',
-        }}
-      />
     </Row>
   );
 }

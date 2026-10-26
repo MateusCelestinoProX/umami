@@ -20,10 +20,12 @@ class WebResourceCacheManager(private val context: Context) {
         if (!exists()) mkdirs()
     }
 
-    private val threadPool = Executors.newFixedThreadPool(4)
+    private val threadPool = Executors.newFixedThreadPool(6)
+    private val downloadingUrls = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+    private val shellCacheFile = File(cacheDir, "app_shell_websites.html")
 
     /**
-     * Pre-warms DNS and initiates TLS handshake in background
+     * Pre-warms DNS and caches initial application shell in background
      */
     fun prewarmConnection(primaryHost: String, targetUrl: String) {
         threadPool.execute {
@@ -31,15 +33,22 @@ class WebResourceCacheManager(private val context: Context) {
                 // 1. Pre-resolve DNS
                 InetAddress.getAllByName(primaryHost)
 
-                // 2. Pre-connect HTTP/2 TLS session
-                val conn = URL(targetUrl).openConnection() as HttpURLConnection
-                conn.connectTimeout = 3000
-                conn.readTimeout = 3000
-                conn.requestMethod = "HEAD"
-                conn.setRequestProperty("User-Agent", "UmamiMobile/1.3 (Android; MaxFastPreloader)")
-                conn.connect()
-                conn.inputStream.close()
-                conn.disconnect()
+                // 2. Pre-fetch and update HTML shell cache if missing or older than 12h
+                if (!shellCacheFile.exists() || (System.currentTimeMillis() - shellCacheFile.lastModified() > 12 * 3600 * 1000L)) {
+                    val conn = URL(targetUrl).openConnection() as HttpURLConnection
+                    conn.connectTimeout = 4000
+                    conn.readTimeout = 5000
+                    conn.requestMethod = "GET"
+                    conn.setRequestProperty("User-Agent", "UmamiMobile/1.4 (Android; UltraPerformance)")
+                    val encodedToken = java.net.URLEncoder.encode(com.blackpiratex.umami.UmamiApplication.AUTH_TOKEN, "UTF-8")
+                    conn.setRequestProperty("Cookie", "umami.auth=$encodedToken")
+                    conn.connect()
+                    if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+                        val bytes = conn.inputStream.readBytes()
+                        conn.disconnect()
+                        FileOutputStream(shellCacheFile).use { it.write(bytes) }
+                    }
+                }
             } catch (_: Exception) {
                 // Background warmup is best-effort
             }
@@ -47,7 +56,8 @@ class WebResourceCacheManager(private val context: Context) {
     }
 
     /**
-     * Intercepts and serves static assets directly from disk/assets with 0 latency
+     * Intercepts and serves static assets directly from disk/assets with 0 latency.
+     * Never blocks Chromium worker threads on missing cache.
      */
     fun interceptRequest(request: WebResourceRequest?): WebResourceResponse? {
         val uri = request?.url ?: return null
@@ -73,7 +83,19 @@ class WebResourceCacheManager(private val context: Context) {
             }
         }
 
-        // 2. Intercept and cache Next.js immutable static assets & Google Fonts
+        // 2. Instant App Shell Caching for the websites dashboard
+        val isWebsitesHtml = (path == "/websites" || path == "/websites/") && request.isForMainFrame
+        if (isWebsitesHtml && shellCacheFile.exists() && shellCacheFile.length() > 0) {
+            // Trigger background refresh of the shell
+            refreshShellCacheAsync(urlStr)
+            return try {
+                createResponse("text/html", FileInputStream(shellCacheFile))
+            } catch (_: Exception) {
+                null
+            }
+        }
+
+        // 3. Intercept and cache Next.js immutable static assets & Google Fonts
         val isNextStatic = path.startsWith("/_next/static/")
         val isGoogleFont = uri.host?.contains("gstatic.com") == true || uri.host?.contains("googleapis.com") == true
 
@@ -90,32 +112,56 @@ class WebResourceCacheManager(private val context: Context) {
                 }
             }
 
-            // Stream and cache asynchronously if not in local cache
-            try {
-                val conn = URL(urlStr).openConnection() as HttpURLConnection
-                conn.connectTimeout = 5000
-                conn.readTimeout = 7000
-                conn.connect()
-
-                if (conn.responseCode == HttpURLConnection.HTTP_OK) {
-                    val bytes = conn.inputStream.readBytes()
-                    conn.disconnect()
-
-                    // Save to local cache in background thread
-                    threadPool.execute {
-                        try {
+            // High Performance Non-Blocking Pattern:
+            // Let Chromium download immediately through its native HTTP/2 multiplexed socket (0ms delay)
+            // Meanwhile, asynchronously fetch in background to warm cache for subsequent launches
+            if (downloadingUrls.add(urlStr)) {
+                threadPool.execute {
+                    try {
+                        val conn = URL(urlStr).openConnection() as HttpURLConnection
+                        conn.connectTimeout = 4000
+                        conn.readTimeout = 6000
+                        conn.connect()
+                        if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+                            val bytes = conn.inputStream.readBytes()
+                            conn.disconnect()
                             FileOutputStream(cachedFile).use { it.write(bytes) }
-                        } catch (_: Exception) {}
+                        }
+                    } catch (_: Exception) {
+                    } finally {
+                        downloadingUrls.remove(urlStr)
                     }
-
-                    return createResponse(mimeType, ByteArrayInputStream(bytes))
                 }
-            } catch (_: Exception) {
-                return null
             }
+            return null
         }
 
         return null
+    }
+
+    private fun refreshShellCacheAsync(targetUrl: String) {
+        if (downloadingUrls.add(targetUrl)) {
+            threadPool.execute {
+                try {
+                    val conn = URL(targetUrl).openConnection() as HttpURLConnection
+                    conn.connectTimeout = 4000
+                    conn.readTimeout = 5000
+                    conn.requestMethod = "GET"
+                    conn.setRequestProperty("User-Agent", "UmamiMobile/1.4 (Android; UltraPerformance)")
+                    val encodedToken = java.net.URLEncoder.encode(com.blackpiratex.umami.UmamiApplication.AUTH_TOKEN, "UTF-8")
+                    conn.setRequestProperty("Cookie", "umami.auth=$encodedToken")
+                    conn.connect()
+                    if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+                        val bytes = conn.inputStream.readBytes()
+                        conn.disconnect()
+                        FileOutputStream(shellCacheFile).use { it.write(bytes) }
+                    }
+                } catch (_: Exception) {
+                } finally {
+                    downloadingUrls.remove(targetUrl)
+                }
+            }
+        }
     }
 
     private fun createResponse(mimeType: String, stream: java.io.InputStream): WebResourceResponse {

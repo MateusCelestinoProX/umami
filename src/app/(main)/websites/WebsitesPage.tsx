@@ -26,7 +26,7 @@ export function WebsitesPage() {
         <PageHeader title={t(labels.websites)}>
           {showActions && <WebsiteAddButton teamId={teamId} />}
         </PageHeader>
-        <Panel>
+        <Panel className="websites-container-panel">
           <WebsitesDataTable teamId={teamId} showActions={showActions} />
         </Panel>
       </Column>

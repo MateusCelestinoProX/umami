@@ -56,11 +56,14 @@ export function WebsitesTable({
                 gap: '12px',
                 padding: '16px',
                 borderRadius: '16px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+                background: 'linear-gradient(165deg, rgba(22, 22, 36, 0.76) 0%, rgba(12, 12, 22, 0.85) 100%)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255, 255, 255, 0.09)',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
+                position: 'relative',
+                overflow: 'hidden',
+                contain: 'paint',
               }}
             >
               {/* Header: Favicon + Website Title (left) & Edit button (right) */}
@@ -69,7 +72,7 @@ export function WebsitesTable({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  gap: '8px',
+                  gap: '10px',
                   width: '100%',
                 }}
               >
@@ -78,17 +81,29 @@ export function WebsitesTable({
                     renderLink(row)
                   ) : (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
-                      <div style={{ flexShrink: 0, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ flexShrink: 0, width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Favicon domain={row.domain} />
                       </div>
-                      <Text truncate title={row.name} style={{ maxWidth: '100%', fontWeight: 600, fontSize: '15px' }}>
+                      <Text truncate title={row.name} style={{ maxWidth: '100%', fontWeight: 600, fontSize: '15px', color: '#ffffff' }}>
                         <Link href={renderUrl(`/websites/${row.id}`, false)}>{row.name}</Link>
                       </Text>
                     </div>
                   )}
                 </div>
                 {showActions && (
-                  <LinkButton href={editUrl} variant="quiet" style={{ flexShrink: 0 }}>
+                  <LinkButton
+                    href={editUrl}
+                    variant="quiet"
+                    style={{
+                      flexShrink: 0,
+                      minWidth: '44px',
+                      minHeight: '44px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '10px',
+                    }}
+                  >
                     <Icon size="sm">
                       <SquarePen />
                     </Icon>
@@ -103,15 +118,16 @@ export function WebsitesTable({
                     display: 'inline-block',
                     fontSize: '12px',
                     fontFamily: 'monospace',
-                    color: 'rgba(255, 255, 255, 0.75)',
-                    background: 'rgba(255, 255, 255, 0.06)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    padding: '2px 8px',
-                    borderRadius: '6px',
+                    color: '#c4b5fd',
+                    background: 'rgba(167, 139, 250, 0.08)',
+                    border: '1px solid rgba(167, 139, 250, 0.22)',
+                    padding: '3px 10px',
+                    borderRadius: '8px',
                     maxWidth: '100%',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
+                    fontWeight: 500,
                   }}
                   title={decodePunycodeDomain(row.domain) ?? undefined}
                 >
@@ -126,7 +142,7 @@ export function WebsitesTable({
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   paddingTop: '10px',
-                  borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderTop: '1px solid rgba(255, 255, 255, 0.06)',
                   marginTop: '2px',
                 }}
               >
@@ -138,12 +154,12 @@ export function WebsitesTable({
                     style={{
                       fontSize: '12px',
                       fontWeight: 600,
-                      color: 'rgba(255, 255, 255, 0.85)',
+                      color: 'rgba(255, 255, 255, 0.90)',
                     }}
                   >
                     {totalVisitors.toLocaleString()} {t(labels.visitors).toLocaleLowerCase()}
                   </span>
-                  <div style={{ width: 64, height: 20 }}>
+                  <div style={{ width: 68, height: 22 }}>
                     <WebsiteSparkline
                       values={chart?.values}
                       total={chart?.total}

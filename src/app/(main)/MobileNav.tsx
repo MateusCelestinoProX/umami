@@ -49,12 +49,35 @@ export function MobileNav() {
       <MobileMenuButton>
         {({ close }) => {
           return (
-            <Column gap="2" display="flex" flex-direction="column" padding="1" height="100%">
+            <Column gap="2" display="flex" flex-direction="column" padding="2" height="100%">
               {isMain &&
                 links.map(link => {
+                  const isActive = pathname.startsWith(link.path);
                   return (
-                    <Row key={link.id} padding>
-                      <Link href={renderUrl(link.path)} onClick={close}>
+                    <Row
+                      key={link.id}
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '12px',
+                        backgroundColor: isActive ? 'rgba(167, 139, 250, 0.14)' : 'transparent',
+                        border: isActive ? '1px solid rgba(167, 139, 250, 0.28)' : '1px solid transparent',
+                        transition: 'all 0.15s ease',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Link
+                        href={renderUrl(link.path)}
+                        onClick={close}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.88)',
+                          fontWeight: isActive ? 600 : 500,
+                          fontSize: '15px',
+                          textDecoration: 'none',
+                        }}
+                      >
                         <IconLabel icon={link.icon} label={link.label} />
                       </Link>
                     </Row>
@@ -63,7 +86,7 @@ export function MobileNav() {
               {websiteId && <WebsiteNav websiteId={websiteId} onItemClick={close} />}
               {isAdmin && <AdminNav onItemClick={close} />}
               {isSettings && <SettingsNav onItemClick={close} />}
-              <Row style={{ marginTop: 'auto' }}>
+              <Row style={{ marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
                 <UserButton onClose={close} />
               </Row>
             </Column>

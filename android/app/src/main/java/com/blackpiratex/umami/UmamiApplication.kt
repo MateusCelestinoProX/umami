@@ -71,12 +71,9 @@ class UmamiApplication : Application() {
         // 2. Pre-warm DNS and TLS connection pool
         cacheManager.prewarmConnection(PRIMARY_HOST, TARGET_URL)
 
-        // 3. Pre-warm Chromium provider on main thread idle
-        Looper.myQueue().addIdleHandler {
-            try {
-                WebView(this).destroy()
-            } catch (_: Throwable) {}
-            false
-        }
+        // 3. Pre-warm Chromium engine immediately on app process launch
+        try {
+            WebView(this).destroy()
+        } catch (_: Throwable) {}
     }
 }
