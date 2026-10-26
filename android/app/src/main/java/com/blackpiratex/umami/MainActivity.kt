@@ -6,11 +6,15 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.ConsoleMessage
 import android.webkit.CookieManager
+import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
@@ -81,7 +85,7 @@ class MainActivity : ComponentActivity() {
             setBackgroundColor(Color.parseColor("#040407"))
         }
 
-        // SwipeRefreshLayout
+        // SwipeRefreshLayout (desabilitado para gestos acidentais; a recarga ocorre de forma específica e deliberada)
         swipeRefreshLayout = SwipeRefreshLayout(this).apply {
             layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -90,6 +94,7 @@ class MainActivity : ComponentActivity() {
             setBackgroundColor(Color.parseColor("#040407"))
             setProgressBackgroundColorSchemeColor(Color.parseColor("#121524"))
             setColorSchemeColors(Color.parseColor("#8b5cf6"), Color.parseColor("#06b6d4"))
+            isEnabled = false
         }
 
         // Hardware-accelerated WebView enabling WebGL shaders and liquid crystal glass
@@ -103,6 +108,7 @@ class MainActivity : ComponentActivity() {
             isVerticalScrollBarEnabled = false
             isHorizontalScrollBarEnabled = false
             overScrollMode = View.OVER_SCROLL_NEVER
+            isNestedScrollingEnabled = false
         }
 
         // High priority GPU rasterization
@@ -135,6 +141,8 @@ class MainActivity : ComponentActivity() {
         setupWebSettings()
         setupCookies()
         setupClients()
+
+        webView.addJavascriptInterface(AndroidBridge(), "AndroidBridge")
 
         swipeRefreshLayout.setOnRefreshListener {
             webView.reload()
@@ -340,6 +348,43 @@ class MainActivity : ComponentActivity() {
         super.onPause()
         webView.onPause()
         CookieManager.getInstance().flush()
+    }
+
+    fun triggerExplicitReload() {
+        progressBar.visibility = View.VISIBLE
+        progressBar.progress = 15
+        webView.reload()
+    }
+
+    inner class AndroidBridge {
+        @JavascriptInterface
+        fun reloadPage() {
+            runOnUiThread {
+                triggerExplicitReload()
+            }
+        }
+
+        @JavascriptInterface
+        fun vibrate(milliseconds: Long) {
+            runOnUiThread {
+                try {
+                    val vibrator = getSystemService(VIBRATOR_SERVICE) as? Vibrator
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        vibrator?.vibrate(
+                            VibrationEffect.createOneShot(
+                                milliseconds.coerceIn(5, 100),
+                                VibrationEffect.DEFAULT_AMPLITUDE
+                            )
+                        )
+                    } else {
+                        @Suppress("DEPRECATION")
+                        vibrator?.vibrate(milliseconds.coerceIn(5, 100))
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
     }
 
     override fun onDestroy() {

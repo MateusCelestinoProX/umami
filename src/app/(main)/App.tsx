@@ -63,7 +63,8 @@ export function App({ children }) {
     <Grid
       columns={{ base: '1fr', lg: 'auto 1fr' }}
       rows={{ base: 'auto 1fr', lg: '1fr' }}
-      height="screen"
+      height={{ base: 'auto', lg: 'screen' }}
+      style={{ minHeight: '100vh' }}
     >
       <Row display={{ base: 'flex', lg: 'none' }} alignItems="center" gap padding="3">
         <MobileNav />
@@ -71,7 +72,7 @@ export function App({ children }) {
       <Column display={{ base: 'none', lg: 'flex' }} minHeight="0" style={{ overflow: 'hidden' }}>
         <SideNav />
       </Column>
-      <Column overflowX="hidden" minHeight="0" position="relative">
+      <Column overflowX="hidden" minHeight={{ base: 'auto', lg: '0' }} position="relative">
         <TopNav />
         <Column
           alignItems="center"

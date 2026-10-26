@@ -39,6 +39,11 @@
   --blur-liquid: 28px;
 }
 
+html, body {
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Override Zen Theme Tokens for Universal Liquid Glass & MCP OS Violet Neon */
 :root,
 [data-theme="light"],

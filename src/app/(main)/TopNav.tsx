@@ -1,13 +1,82 @@
 'use client';
 import { Icon, Row } from '@umami/react-zen';
+import { useState } from 'react';
 import { useNavigation } from '@/components/hooks';
-import { Minus } from '@/components/icons';
+import { Minus, RotateCw } from '@/components/icons';
 import { BoardSelect } from '@/components/input/BoardSelect';
 import { LinkSelect } from '@/components/input/LinkSelect';
 import { PixelSelect } from '@/components/input/PixelSelect';
 import { TeamsButton } from '@/components/input/TeamsButton';
 import { WebsiteSelect } from '@/components/input/WebsiteSelect';
 import { ShaderSwitcher } from '@/components/mcp-os/ShaderSwitcher';
+
+function ReloadButton() {
+  const [rotating, setRotating] = useState(false);
+
+  const handleClick = () => {
+    setRotating(true);
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        navigator.vibrate(20);
+      } catch {
+        // ignore
+      }
+    }
+    if (typeof window !== 'undefined') {
+      const bridge = (window as any).AndroidBridge;
+      if (bridge && typeof bridge.reloadPage === 'function') {
+        bridge.reloadPage();
+      } else {
+        window.location.reload();
+      }
+    }
+    setTimeout(() => setRotating(false), 800);
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      title="Recarregar Dados"
+      aria-label="Recarregar"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '38px',
+        height: '38px',
+        minWidth: '38px',
+        minHeight: '38px',
+        borderRadius: '10px',
+        background: 'rgba(255, 255, 255, 0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        color: 'rgba(255, 255, 255, 0.88)',
+        cursor: 'pointer',
+        transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+        flexShrink: 0,
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.14)';
+        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.22)';
+        e.currentTarget.style.color = '#ffffff';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.88)';
+      }}
+    >
+      <Icon size="xs">
+        <RotateCw
+          style={{
+            transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+            transform: rotating ? 'rotate(360deg)' : 'none',
+          }}
+        />
+      </Icon>
+    </button>
+  );
+}
 
 export function TopNav() {
   const { websiteId, linkId, pixelId, boardId, teamId, router, renderUrl } = useNavigation();
@@ -105,6 +174,7 @@ export function TopNav() {
         )}
       </Row>
       <Row alignItems="center" gap="2" style={{ marginLeft: 'auto', zIndex: 101 }}>
+        <ReloadButton />
         <ShaderSwitcher />
       </Row>
     </Row>
